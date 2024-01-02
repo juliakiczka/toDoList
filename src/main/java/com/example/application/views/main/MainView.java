@@ -1,32 +1,59 @@
 package com.example.application.views.main;
 
+import com.example.application.entity.Task;
+import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dependency.StyleSheet;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@PageTitle("Main")
-@Route(value = "")
-public class MainView extends HorizontalLayout {
+import java.util.List;
 
-    private TextField name;
-    private Button sayHello;
+@Route("")
+@StyleSheet("/css/style.css")
 
-    public MainView() {
-        name = new TextField("Your name");
-        sayHello = new Button("Say hello");
-        sayHello.addClickListener(e -> {
-            Notification.show("Hello " + name.getValue());
-        });
-        sayHello.addClickShortcut(Key.ENTER);
+public class MainView extends VerticalLayout {
+    private final TaskService service;
 
-        setMargin(true);
-        setVerticalComponentAlignment(Alignment.END, name, sayHello);
+    @Autowired
 
-        add(name, sayHello);
+    public MainView(TaskService service) {
+        this.service = service;
     }
 
+    @PostConstruct
+    private void init() {
+        VerticalLayout todosList = new VerticalLayout();
+        TextField taskField = new TextField();
+        Button addButton = new Button("Add");
+        Task task = new Task();
+        List<Task> tasks = service.getAll();
+        for (Task element : tasks) {
+            Checkbox checkbox = new Checkbox(element.getTask());
+            todosList.add(checkbox);
+        }
+        addButton.addClickListener(click -> {
+            Checkbox checkbox = new Checkbox(taskField.getValue());
+            service.add(new Task(taskField.getValue()));
+            todosList.add(checkbox);
+            taskField.clear();
+        });
+        addButton.addClickShortcut(Key.ENTER);
+
+        add(
+                new H1("Gurl's ToDoList"),
+                todosList,
+                new HorizontalLayout(
+                        taskField,
+                        addButton
+                )
+        );
+    }
 }
