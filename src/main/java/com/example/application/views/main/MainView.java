@@ -18,12 +18,10 @@ import java.util.List;
 
 @Route("")
 @StyleSheet("/css/style.css")
-
 public class MainView extends VerticalLayout {
     private final TaskService service;
 
     @Autowired
-
     public MainView(TaskService service) {
         this.service = service;
     }
@@ -35,25 +33,42 @@ public class MainView extends VerticalLayout {
         Button addButton = new Button("Add");
         Task task = new Task();
         List<Task> tasks = service.getAll();
+
         for (Task element : tasks) {
-            Checkbox checkbox = new Checkbox(element.getTask());
-            todosList.add(checkbox);
+            addTask(todosList, element.getDescription());
         }
+
         addButton.addClickListener(click -> {
-            Checkbox checkbox = new Checkbox(taskField.getValue());
-            service.add(new Task(taskField.getValue()));
-            todosList.add(checkbox);
+            String taskDescription = taskField.getValue();
+            service.add(new Task(taskDescription));
+            addTask(todosList, taskDescription);
             taskField.clear();
         });
+
         addButton.addClickShortcut(Key.ENTER);
+
+        Button removeButton = new Button("Remove Checked");
+        removeButton.addClickListener(click -> {
+            todosList.getChildren()
+                    .filter(Checkbox.class::isInstance)
+                    .map(Checkbox.class::cast)
+                    .filter(Checkbox -> Boolean.parseBoolean(Checkbox.getElement().getProperty("checked")))
+                    .forEach(todosList::remove);
+        });
 
         add(
                 new H1("Gurl's ToDoList"),
                 todosList,
                 new HorizontalLayout(
                         taskField,
-                        addButton
+                        addButton,
+                        removeButton
                 )
         );
+    }
+
+    private void addTask(VerticalLayout todosList, String taskDescription) {
+        Checkbox checkbox = new Checkbox(taskDescription);
+        todosList.add(checkbox);
     }
 }

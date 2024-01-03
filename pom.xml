@@ -92,6 +92,12 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+            <!-- other dependencies -->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.boot</groupId>-->
+<!--                <artifactId>spring-boot-starter-security</artifactId>-->
+<!--            </dependency>-->
+            <!-- other dependencies -->
     </dependencies>
 
     <build>

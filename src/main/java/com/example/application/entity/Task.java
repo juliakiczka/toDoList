@@ -14,11 +14,11 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String task;
+    private String description;
     private boolean done;
 
-    public Task(String task) {
-        this.task = task;
+    public Task(String description) {
+        this.description = description;
         done = false;
     }
 }
