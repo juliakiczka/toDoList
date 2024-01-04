@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 @Service
 public class TaskService {
@@ -35,5 +35,27 @@ public class TaskService {
         if (task != null) {
             repository.delete(task);
         }
+    }
+    public void deleteTask(Task task) {
+        if (task != null) {
+            repository.delete(task);
+        }
+    }
+
+
+    public void deleteByID(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+        }
+    }
+
+    public void updateTask(Task taskToUpdate) {
+        Optional<Task> task = repository.findById(taskToUpdate.getId());
+        task.ifPresent(value -> value.setDone(true));
+
+    }
+
+    public Optional<Task> getTaskById(Long taskId) {
+        return repository.findById(taskId);
     }
 }

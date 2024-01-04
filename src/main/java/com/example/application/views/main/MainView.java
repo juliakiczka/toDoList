@@ -14,12 +14,15 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.*;
+
 
 @Route("")
 @StyleSheet("/css/style.css")
 public class MainView extends VerticalLayout {
     private final TaskService service;
+    private final Map<Checkbox, Task> checkboxTaskMap = new HashMap<>();
+
 
     @Autowired
     public MainView(TaskService service) {
@@ -31,6 +34,7 @@ public class MainView extends VerticalLayout {
         VerticalLayout todosList = new VerticalLayout();
         TextField taskField = new TextField();
         Button addButton = new Button("Add");
+        addButton.addClassName("custom-color");
         Task task = new Task();
         List<Task> tasks = service.getAll();
 
@@ -47,14 +51,7 @@ public class MainView extends VerticalLayout {
 
         addButton.addClickShortcut(Key.ENTER);
 
-        Button removeButton = new Button("Remove Checked");
-        removeButton.addClickListener(click -> {
-            todosList.getChildren()
-                    .filter(Checkbox.class::isInstance)
-                    .map(Checkbox.class::cast)
-                    .filter(Checkbox -> Boolean.parseBoolean(Checkbox.getElement().getProperty("checked")))
-                    .forEach(todosList::remove);
-        });
+        Button removeButton = getButton(todosList, tasks);
 
         add(
                 new H1("Gurl's ToDoList"),
@@ -67,6 +64,25 @@ public class MainView extends VerticalLayout {
         );
     }
 
+    private Button getButton(VerticalLayout todosList, List<Task> tasks) {
+        Button removeButton = new Button("Remove Checked");
+        removeButton.addClassName("custom-color");
+        removeButton.addClickListener(click -> {
+            todosList.getChildren()
+                    .filter(Checkbox.class::isInstance)
+                    .map(Checkbox.class::cast)
+                    .filter(Checkbox -> Boolean.parseBoolean(Checkbox.getElement().getProperty("checked")))
+                    .forEach(checkbox -> {
+                        tasks
+                                .stream()
+                                .filter(Task::isDone)
+                                .forEach(service::deleteTask);
+                        todosList.remove(checkbox);
+                    });
+
+        });
+        return removeButton;
+    }
     private void addTask(VerticalLayout todosList, String taskDescription) {
         Checkbox checkbox = new Checkbox(taskDescription);
         todosList.add(checkbox);
