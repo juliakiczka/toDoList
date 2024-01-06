@@ -52,7 +52,7 @@ public class TaskService {
     public void updateTask(Task taskToUpdate) {
         Optional<Task> task = repository.findById(taskToUpdate.getId());
         task.ifPresent(value -> value.setDone(true));
-
+        repository.save(task.get());
     }
 
     public Optional<Task> getTaskById(Long taskId) {

@@ -3,10 +3,16 @@ package com.example.application.views.main;
 import com.example.application.entity.Task;
 import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.StyleSheet;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -14,14 +20,13 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.List;
 
 
 @Route("")
 @StyleSheet("/css/style.css")
 public class MainView extends VerticalLayout {
     private final TaskService service;
-    private final Map<Checkbox, Task> checkboxTaskMap = new HashMap<>();
 
 
     @Autowired
@@ -44,9 +49,26 @@ public class MainView extends VerticalLayout {
 
         addButton.addClickListener(click -> {
             String taskDescription = taskField.getValue();
-            service.add(new Task(taskDescription));
-            addTask(todosList, taskDescription);
-            taskField.clear();
+            if (!taskDescription.isEmpty()) {
+                service.add(new Task(taskDescription));
+                addTask(todosList, taskDescription);
+                taskField.clear();
+            } else {
+                Notification notification = new Notification();
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Div text = new Div(new Text("Task field cannot be empty!"));
+                Button closeButton = new Button(new Icon("lumo", "cross"));
+                closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+                closeButton.setAriaLabel("Close");
+                closeButton.addClickListener(event -> {
+                    notification.close();
+                });
+                HorizontalLayout layout = new HorizontalLayout(text, closeButton);
+                layout.setAlignItems(Alignment.CENTER);
+                notification.add(layout);
+                notification.open();
+            }
+
         });
 
         addButton.addClickShortcut(Key.ENTER);
@@ -55,12 +77,14 @@ public class MainView extends VerticalLayout {
 
         add(
                 new H1("Gurl's ToDoList"),
-                todosList,
                 new HorizontalLayout(
                         taskField,
                         addButton,
                         removeButton
-                )
+                ),
+                todosList
+
+
         );
     }
 
@@ -83,8 +107,10 @@ public class MainView extends VerticalLayout {
         });
         return removeButton;
     }
+
     private void addTask(VerticalLayout todosList, String taskDescription) {
         Checkbox checkbox = new Checkbox(taskDescription);
+        checkbox.addValueChangeListener(checkboxClickEvent -> service.updateTask(service.findByDescription(taskDescription)));
         todosList.add(checkbox);
     }
 }
