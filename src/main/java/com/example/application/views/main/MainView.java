@@ -18,6 +18,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -25,9 +26,10 @@ import java.util.List;
 
 @Route("")
 @StyleSheet("/css/style.css")
+@Slf4j
+
 public class MainView extends VerticalLayout {
     private final TaskService service;
-
 
     @Autowired
     public MainView(TaskService service) {
@@ -36,6 +38,7 @@ public class MainView extends VerticalLayout {
 
     @PostConstruct
     private void init() {
+        log.info("Initializing MainView...");
         VerticalLayout todosList = new VerticalLayout();
         TextField taskField = new TextField();
         Button addButton = new Button("Add");
@@ -48,12 +51,14 @@ public class MainView extends VerticalLayout {
         }
 
         addButton.addClickListener(click -> {
+            log.info("Add button clicked...");
             String taskDescription = taskField.getValue();
             if (!taskDescription.isEmpty()) {
                 service.add(new Task(taskDescription));
                 addTask(todosList, taskDescription);
                 taskField.clear();
             } else {
+                log.warn("Task field is empty!");
                 Notification notification = new Notification();
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 Div text = new Div(new Text("Task field cannot be empty!"));
@@ -109,8 +114,14 @@ public class MainView extends VerticalLayout {
     }
 
     private void addTask(VerticalLayout todosList, String taskDescription) {
+        log.info("Adding task to the list: {}", taskDescription);
+
         Checkbox checkbox = new Checkbox(taskDescription);
-        checkbox.addValueChangeListener(checkboxClickEvent -> service.updateTask(service.findByDescription(taskDescription)));
+        checkbox.addValueChangeListener(checkboxClickEvent -> {
+            Task byDescription = service.findByDescription(taskDescription);
+            service.updateTask(byDescription);
+            log.info("Checkbox value changed for task: {}", byDescription);
+        });
         todosList.add(checkbox);
     }
 }
